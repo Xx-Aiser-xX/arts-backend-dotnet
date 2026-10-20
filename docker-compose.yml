@@ -1,0 +1,100 @@
+services:
+  arts-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: arts-api
+    ports:
+      - "8081:8081"
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=host.docker.internal;Port=${DB_PORT};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+      - ConnectionStrings__Redis=redis:${REDIS_PORT}
+      - Minio__EndpointUrl=http://minio:${MINIO_API_PORT}
+      - Minio__BucketName=${MINIO_BUCKET}
+      - Minio__AccessKey=${MINIO_ROOT_USER}
+      - Minio__SecretKey=${MINIO_ROOT_PASSWORD}
+      - Keycloak__BaseUrl=http://keycloak:${KEYCLOAK_PORT}
+      - Keycloak__Realm=arts-realm
+      - Keycloak__AdminUsername=${KEYCLOAK_ADMIN}
+      - Keycloak__AdminPassword=${KEYCLOAK_ADMIN_PASSWORD}
+      - Tagger__BaseUrl=${TAGGER_URL}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - app-network
+    depends_on:
+      redis:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      minio:
+        condition: service_healthy
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.5
+    container_name: keycloak
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://host.docker.internal:${DB_PORT}/${KC_DB_NAME}
+      - KC_DB_USERNAME=${KC_DB_USER}
+      - KC_DB_PASSWORD=${KC_DB_PASSWORD}
+      - KC_DB_SCHEMA=public
+      - KC_DB_MIGRATION_STRATEGY=update
+      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      - KC_HOSTNAME=localhost
+      - KC_HTTP_ENABLED=true
+      - KC_HOSTNAME_STRICT=false
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_LOG_LEVEL=DEBUG
+    ports:
+      - "${KEYCLOAK_PORT}:8080"
+    command: start-dev
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - app-network
+
+  minio:
+    image: cgr.dev/chainguard/minio:latest
+    container_name: minio
+    user: root
+    ports:
+      - "${MINIO_API_PORT}:9000"
+      - "${MINIO_CONSOLE_PORT}:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address ":9001"
+    volumes:
+      - ${MINIO_DATA_PATH}:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD", "mc", "ready", "local" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  minio_data:
+
+networks:
+  app-network:
+    driver: bridge

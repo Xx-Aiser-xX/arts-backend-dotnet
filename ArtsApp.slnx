@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path=".env" />
+    <File Path=".env.example" />
+    <File Path=".gitignore" />
+    <File Path="docker-compose.yml" />
+    <File Path="Dockerfile" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Arts.Api/Arts.Api.csproj" />
+    <Project Path="src/Arts.Application/Arts.Application.csproj" />
+    <Project Path="src/Arts.Domain/Arts.Domain.csproj" />
+    <Project Path="src/Arts.Infrastructure/Arts.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Arts.Api.IntegrationTests/Arts.Api.IntegrationTests.csproj" />
+    <Project Path="tests/Arts.Domain.UnitTests/Arts.Domain.UnitTests.csproj" />
+  </Folder>
+</Solution>

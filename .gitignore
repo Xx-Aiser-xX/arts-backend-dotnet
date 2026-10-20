@@ -1,0 +1,24 @@
+# СЕКРЕТЫ (САМОЕ ВАЖНОЕ!)
+.env
+
+# ПАПКИ СБОРКИ .NET
+[Bb]in/
+[Oo]bj/
+
+# ЛОГИ
+*.log
+
+# НАСТРОЙКИ IDE (Rider / Visual Studio)
+.idea/
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+# ТЕСТЫ И ПОКРЫТИЕ КОДА
+TestResults/
+coverage/
+
+# MAC OS
+.DS_Store
